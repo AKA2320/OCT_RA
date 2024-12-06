@@ -22,9 +22,9 @@ This analysis focuses on tracking **cell movement post-registration** in pig eye
     <td align="center"><b>2 Minutes After Eye Drop</b></td>
   </tr>
   <tr>
-    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/before_reduced.gif" alt="Before Eye Drop" width="250"/></td>
-    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_reduced.gif" alt="After Eye Drop" width="250"/></td>
-    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_2min_reduced.gif" alt="2 mins After Eye Drop" width="250"/></td>
+    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/before_reduced.gif" alt="Before Eye Drop" width="300"/></td>
+    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_reduced.gif" alt="After Eye Drop" width="300"/></td>
+    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_2min_reduced.gif" alt="2 mins After Eye Drop" width="300"/></td>
   </tr>
 </table>
 
