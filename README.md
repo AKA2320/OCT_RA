@@ -6,8 +6,8 @@ https://blogs.iu.edu/tankamlab/people/
 
 RED(high movement) <--> GREEN(low movement)
 
-![Before Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/before_reduced.gif){.image25percent }
+![Before Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/before_reduced.gif){ .image25percent }
 
-![After Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_reduced.gif){.image25percent }
+![After Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_reduced.gif){ .image25percent }
 
-![2 mins After Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_2min_reduced.gif){.image25percent }
+![2 mins After Eye Drop](https://github.com/AKA2320/OCT_RA/blob/main/pig_eyeball/after_2min_reduced.gif){ .image25percent }
