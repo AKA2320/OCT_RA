@@ -6,7 +6,6 @@ from natsort import natsorted
 from tqdm import tqdm
 import ants
 
-
 path = 'pig_eyeball/after_apply_drop_1/pic1/'
 pic_paths = []
 for i in os.listdir(path):
