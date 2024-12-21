@@ -79,7 +79,6 @@ def run_scans(scan_num):
         UP,DOWN,mir_UP,mir_DOWN = top_extract(gg,mid)
 
     transforms_all = np.tile(np.eye(3),(500,1,1))
-
     errors_ncc = []
     for i in tqdm(range(gg.shape[0]-1)):
         # mat = scipy.io.loadmat(ants_reg_mapping(min_max(denoise_fft(np.vstack((min_max(gg[i][UP:DOWN]),min_max(gg[i][mir_UP:mir_DOWN])))))
@@ -100,22 +99,23 @@ def run_scans(scan_num):
         errors_ncc.append(temp_err[0])
     smooth_errors = denoise_signal(errors_ncc[5:])
     peaks = find_peaks(smooth_errors,width=25)[0]
-    print('PEAKS ARE HERE NOT PRINTED')
+    print('PEAKS ARE HERE PRINTED')
     print(peaks)
     # print(transforms_all[:,0,2])
 
     for frame in peaks:
         gg[frame-2:frame+2].fill(0)
         transforms_all[frame-2:frame+2] = np.eye(3)
-    
-    for i in range(5,transforms_all.shape[0]):
-        transforms_all[i+1:] = np.dot(transforms_all[i+1:],transforms_all[i])
 
-    print('PEAKS ARE HERE NOT PRINTED')
-    print(transforms_all[:,0,2])
+    transforms_all_corrected = np.tile(np.eye(3),(500,1,1))
+    for i in range(transforms_all_corrected.shape[0]):
+        transforms_all_corrected[i:] = np.dot(transforms_all_corrected[i:],transforms_all[i])
+
+    # print('PEAKS ARE HERE NOT PRINTED')
+    # print(transforms_all_corrected[:,0,2])
 
     for i in tqdm(range(gg.shape[0])):
-        gg[i] = warp(gg[i],AffineTransform(matrix=transforms_all[i]),order=3)
+        gg[i] = warp(gg[i],AffineTransform(matrix=transforms_all_corrected[i]),order=3)
 
 
     # SAVING
@@ -125,7 +125,6 @@ def run_scans(scan_num):
 
 if __name__ == '__main__':
     scans = [i for i in os.listdir() if i.startswith('scan')]
-    # for sc in scans:
-    #     run_scans(sc)
-    #     print(f'------- {sc} ----- DONE -----------------')
-    run_scans('scan17')
+    for sc in scans:
+        run_scans(sc)
+        print(f'------- {sc} ----- DONE -----------------')
