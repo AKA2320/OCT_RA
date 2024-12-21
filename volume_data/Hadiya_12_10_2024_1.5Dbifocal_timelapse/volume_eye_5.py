@@ -102,7 +102,7 @@ def run_scans(scan_num):
     peaks = find_peaks(smooth_errors,width=25)[0]
     print('PEAKS ARE HERE NOT PRINTED')
     print(peaks)
-    print(transforms_all[:,0,2])
+    # print(transforms_all[:,0,2])
 
     for frame in peaks:
         gg[frame-2:frame+2].fill(0)
@@ -111,6 +111,8 @@ def run_scans(scan_num):
     for i in range(5,transforms_all.shape[0]):
         transforms_all[i+1:] = np.dot(transforms_all[i+1:],transforms_all[i])
 
+    print('PEAKS ARE HERE NOT PRINTED')
+    print(transforms_all[:,0,2])
 
     for i in tqdm(range(gg.shape[0])):
         gg[i] = warp(gg[i],AffineTransform(matrix=transforms_all[i]),order=3)
