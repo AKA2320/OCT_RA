@@ -98,14 +98,14 @@ def run_scans(scan_num):
                                                         ,min_max(temp_transformed_gg[mir_UP:mir_DOWN][:,x_zero_offset:y_zero_offset])))))))
         errors_ncc.append(temp_err[0])
     smooth_errors = denoise_signal(errors_ncc[5:])
-    peaks = find_peaks(smooth_errors,width=25)[0]
+    peaks = find_peaks(smooth_errors,width=15)[0]
     print('PEAKS ARE HERE PRINTED')
     print(peaks)
     # print(transforms_all[:,0,2])
 
     for frame in peaks:
-        gg[frame-2:frame+2].fill(0)
-        transforms_all[frame-2:frame+2] = np.eye(3)
+        gg[frame-5:frame+5].fill(0)
+        transforms_all[frame-5:frame+5] = np.eye(3)
 
     transforms_all_corrected = np.tile(np.eye(3),(500,1,1))
     for i in range(transforms_all_corrected.shape[0]):
