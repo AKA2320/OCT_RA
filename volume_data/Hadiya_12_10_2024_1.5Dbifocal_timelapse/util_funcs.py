@@ -171,3 +171,9 @@ def non_zero_crop(a,b):
     mini = max(np.min(np.where(a[0]!=0)),np.min(np.where(b[0]!=0)))
     maxi = min(np.max(np.where(a[0]!=0)),np.max(np.where(b[0]!=0)))
     return mini, maxi
+
+def denoise_signal1D_err_calc(errs):
+    kk = fft(errs)
+    kk[20:] = 0
+    kk = abs(ifft(kk))
+    return kk

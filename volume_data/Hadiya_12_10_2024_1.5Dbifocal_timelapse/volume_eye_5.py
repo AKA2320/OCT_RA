@@ -90,22 +90,41 @@ def run_scans(scan_num):
         # transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
         transforms_all[i+1] = np.dot(transforms_all[i+1],tff)
         temp_transformed_gg = warp(gg[i+1],tff,order=3)
-        x_zero_offset, y_zero_offset = non_zero_crop(gg[i][np.r_[UP:DOWN,mir_UP:mir_DOWN]]
-                                                    ,temp_transformed_gg[np.r_[UP:DOWN,mir_UP:mir_DOWN]])
-        temp_err = (1-ncc(min_max(denoise_fft(np.vstack((min_max(gg[i][UP:DOWN][:,x_zero_offset:y_zero_offset])
-                                                        ,min_max(gg[i][mir_UP:mir_DOWN][:,x_zero_offset:y_zero_offset])))))
-                        ,min_max(denoise_fft(np.vstack((min_max(temp_transformed_gg[UP:DOWN][:,x_zero_offset:y_zero_offset])
-                                                        ,min_max(temp_transformed_gg[mir_UP:mir_DOWN][:,x_zero_offset:y_zero_offset])))))))
+
+        ## USING THE CELLS
+        # x_zero_offset, y_zero_offset = non_zero_crop(gg[i][np.r_[UP:DOWN,mir_UP:mir_DOWN]]
+        #                                             ,temp_transformed_gg[np.r_[UP:DOWN,mir_UP:mir_DOWN]])
+        # temp_err = (1-ncc(min_max(denoise_fft(np.vstack((min_max(gg[i][UP:DOWN][:,x_zero_offset:y_zero_offset])
+        #                                                 ,min_max(gg[i][mir_UP:mir_DOWN][:,x_zero_offset:y_zero_offset])))))
+        #                 ,min_max(denoise_fft(np.vstack((min_max(temp_transformed_gg[UP:DOWN][:,x_zero_offset:y_zero_offset])
+        #                                                 ,min_max(temp_transformed_gg[mir_UP:mir_DOWN][:,x_zero_offset:y_zero_offset])))))))
+
+        ## USING THE SURFACE
+        nn = [np.argmax(np.sum(gg[i][:n//2],axis=1)) for i in range(gg.shape[0])]
+        UP_err_calc, DOWN_err_calc = np.min(nn)-30,np.max(nn)+30
+        x_zero_offset, y_zero_offset = non_zero_crop(gg[i][UP_err_calc:DOWN_err_calc]
+                                                    ,temp_transformed_gg[UP_err_calc:DOWN_err_calc])
+        temp_err = 1-ncc(min_max(gg[i][UP_err_calc:DOWN_err_calc]),min_max(temp_transformed_gg[UP_err_calc:DOWN_err_calc]))
+        
         errors_ncc.append(temp_err[0])
-    smooth_errors = denoise_signal(errors_ncc[5:])
-    peaks = find_peaks(smooth_errors,width=15)[0]
+    smooth_errors = denoise_signal1D_err_calc(errors_ncc[:])
+    peaks = find_peaks(smooth_errors,width=10,prominence=0.01)[0]
     print('PEAKS ARE HERE PRINTED')
     print(peaks)
+    frame_ranges = np.squeeze(np.dstack((np.round(find_peaks(smooth_errors,width=10,prominence=0.01)[1]['left_ips'])
+                            ,np.round(find_peaks(smooth_errors,width=10,prominence=0.01)[1]['right_ips'])))).astype(int)
+    if frame_ranges.ndim==1:
+        frame_ranges = frame_ranges.reshape(1,-1)
+
+    print(frame_ranges,frame_ranges.shape)
+    for frame_l,frame_r in frame_ranges:
+        gg[frame_l:frame_r].fill(0)
+        transforms_all[frame_l:frame_r]= np.eye(3)    
     # print(transforms_all[:,0,2])
 
-    for frame in peaks:
-        gg[frame-5:frame+5].fill(0)
-        transforms_all[frame-5:frame+5] = np.eye(3)
+    # for frame in peaks:
+    #     gg[frame-5:frame+5].fill(0)
+    #     transforms_all[frame-5:frame+5] = np.eye(3)
 
     transforms_all_corrected = np.tile(np.eye(3),(500,1,1))
     for i in range(transforms_all_corrected.shape[0]):
@@ -128,3 +147,5 @@ if __name__ == '__main__':
     for sc in scans:
         run_scans(sc)
         print(f'------- {sc} ----- DONE -----------------')
+
+
