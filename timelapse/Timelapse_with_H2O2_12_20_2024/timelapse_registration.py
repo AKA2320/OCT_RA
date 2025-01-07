@@ -54,7 +54,8 @@ def run_scans(scan_num):
     # Y-MOTION
     # mid = find_mid(pics_without_line)
     mid = 450
-    n = pics_without_line.shape[1]
+    # n = pics_without_line.shape[1]
+    n = 200
     nn = [np.argmax(np.sum(pics_without_line[i][:n//2],axis=1)) for i in range(pics_without_line.shape[0])]
     # for i in range(pics_without_line.shape[0]):
     #     nn.append(np.argmax(np.sum(pics_without_line[i][:n//2],axis=1)))
@@ -72,7 +73,9 @@ def run_scans(scan_num):
     for i in tqdm(range(pics_without_line.shape[0]),desc='warping'):
         pics_without_line[i][:mid]  = warp(pics_without_line[i][:mid],AffineTransform(matrix=tr_all[i]),order=3)
 
+    gg = pics_without_line
 
+    '''
     # X-MOTION
     gg = pics_without_line
     UP,DOWN,mir_UP,mir_DOWN = bottom_extract(gg,mid)
@@ -136,12 +139,12 @@ def run_scans(scan_num):
 
     for i in tqdm(range(gg.shape[0])):
         gg[i] = warp(gg[i],AffineTransform(matrix=transforms_all_corrected[i]),order=3)
-
+    '''
 
     # SAVING
     os.makedirs(f'registered/{scan_num}',exist_ok=True)
     for i,j in tqdm(enumerate(gg)):
-        cv2.imwrite(f'registered/{scan_num}/'+f'frame_test{i}.PNG',(min_max(j)*((2**16)-1)).astype(np.uint16))
+        cv2.imwrite(f'registered/{scan_num}/'+f'frame_test{i}.PNG',(min_max(j)*((2**8)-1)).astype(np.uint8))
 
 if __name__ == '__main__':
     scans = [i for i in os.listdir() if i.startswith('scan')]
