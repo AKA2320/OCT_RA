@@ -27,7 +27,7 @@ import ants.registration as ants_register
 import ants
 from scipy.optimize import minimize as minz
 from scipy import optimize
-# from itertools import permutations 
+import pickle
 from skimage.filters import threshold_otsu
 from skimage.metrics import normalized_mutual_information as nmi
 from skimage.metrics import mean_squared_error as mse
@@ -142,7 +142,9 @@ def run_scans(scan_num):
     '''
 
     # SAVING
-    os.makedirs(f'registered/{scan_num}',exist_ok=True)
+    # os.makedirs(f'registered_pickles/{scan_num}',exist_ok=True)
+    # with open(f'registered_pickles/{scan_num}/{scan_num}.pickle', 'wb') as handle:
+    #     pickle.dump(gg.astype(np.float32), handle, protocol=pickle.HIGHEST_PROTOCOL)
     for i,j in tqdm(enumerate(gg)):
         cv2.imwrite(f'registered/{scan_num}/'+f'frame_test{i}.PNG',(min_max(j)*((2**8)-1)).astype(np.uint8))
 
