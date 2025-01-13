@@ -146,7 +146,7 @@ def run_scans(scan_num):
     # with open(f'registered_pickles/{scan_num}/{scan_num}.pickle', 'wb') as handle:
     #     pickle.dump(gg.astype(np.float32), handle, protocol=pickle.HIGHEST_PROTOCOL)
     for i,j in tqdm(enumerate(gg)):
-        cv2.imwrite(f'registered/{scan_num}/'+f'frame_test{i}.PNG',(min_max(j)*((2**8)-1)).astype(np.uint8))
+        cv2.imwrite(f'registered/{scan_num}/'+f'frame_test{i}.PNG',(min_max(j)).astype(np.float32))
 
 if __name__ == '__main__':
     scans = [i for i in os.listdir() if i.startswith('scan')]

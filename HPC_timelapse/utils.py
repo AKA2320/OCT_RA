@@ -9,6 +9,7 @@ from natsort import natsorted
 import cv2
 import multiprocessing
 from numpy.fft import fft2,fft,ifft
+from skimage.transform import warp, AffineTransform
 
 def min_max(data1):
     if np.max(data1)==0:
@@ -34,6 +35,25 @@ def load_data(path):
     data = data.astype(np.float32)
     return data
 
+# def load_data(path):
+#     pic_paths = []
+#     for scan_num in os.listdir(path):
+#         if scan_num.startswith('scan'):
+#             pic_paths.append(os.path.join(path,scan_num))
+#     pic_paths = natsorted(pic_paths)
+#     print(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]))
+#     # print(pic_paths[0]+os.listdir(pic_paths[0])[0])
+#     temp_img = cv2.imread(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]),cv2.IMREAD_UNCHANGED) 
+#     data = np.zeros((len(pic_paths),len(os.listdir(pic_paths[0])),temp_img.shape[0],temp_img.shape[1]))
+
+#     for main_idx,img_paths in enumerate(pic_paths):
+#         all_img_paths = natsorted(os.listdir(img_paths))
+#         for idx,img_path in enumerate(all_img_paths):
+#             temp = cv2.imread(os.path.join(img_paths,img_path),cv2.IMREAD_UNCHANGED)
+#             data[main_idx,idx]=(temp.copy())
+#     data = data.astype(np.float32)
+#     return data
+
 def slope_mask(slope_arr):
     mask1 = np.zeros_like(slope_arr[0],dtype=np.float32)
     # slope_arr = slope_arr.astype(np.float32)
@@ -47,9 +67,8 @@ def slope_mask(slope_arr):
     return mask1*(5*std_mask)
 
 def ymotion(data):
-    n = data.shape[0]
-    data[0,0,250:500,:]
-    nn = [np.argmax(np.sum(data[i][0,250:500,:],axis=1)) for i in range(data.shape[0])]
+    # n = data.shape[0]
+    nn = [np.argmax(np.sum(data[i][0,:,:],axis=1)) for i in range(data.shape[0])]
     tf_all_nn = np.tile(np.eye(3),(data.shape[0],1,1))
     for i in range(tf_all_nn.shape[0]):
         tf_all_nn[i] = np.dot(tf_all_nn[i],AffineTransform(translation=(0,-(nn[0]-nn[i]))))

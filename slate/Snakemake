@@ -19,7 +19,7 @@ def num_frames(path_num):
 
 
 names = ['before','after','after_2min']
-
+'''
 
 rule all:
     input:
@@ -47,3 +47,6 @@ rule combine:
         """
         srun -A r00970 --mem=35G --mail-type=END --mail-user=akapatil@iu.edu -p general python combine.py {wildcards.name}
         """
+
+
+'''
