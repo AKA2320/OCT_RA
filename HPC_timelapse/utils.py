@@ -18,7 +18,7 @@ def min_max(data1):
         data1 = (data1-np.min(data1))/(np.max(data1)-np.min(data1))
         return data1
 
-def load_data(path):
+def load_nested_data_pickle(path):
     pic_paths = []
     for scan_num in os.listdir(path):
         if scan_num.startswith('scan'):
@@ -35,24 +35,40 @@ def load_data(path):
     data = data.astype(np.float32)
     return data
 
-# def load_data(path):
-#     pic_paths = []
-#     for scan_num in os.listdir(path):
-#         if scan_num.startswith('scan'):
-#             pic_paths.append(os.path.join(path,scan_num))
-#     pic_paths = natsorted(pic_paths)
-#     print(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]))
-#     # print(pic_paths[0]+os.listdir(pic_paths[0])[0])
-#     temp_img = cv2.imread(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]),cv2.IMREAD_UNCHANGED) 
-#     data = np.zeros((len(pic_paths),len(os.listdir(pic_paths[0])),temp_img.shape[0],temp_img.shape[1]))
+def load_nested_data_png(path):
+    pic_paths = []
+    for scan_num in os.listdir(path):
+        if scan_num.startswith('scan'):
+            pic_paths.append(os.path.join(path,scan_num))
+    pic_paths = natsorted(pic_paths)
+    print(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]))
+    # print(pic_paths[0]+os.listdir(pic_paths[0])[0])
+    temp_img = cv2.imread(os.path.join(pic_paths[0],os.listdir(pic_paths[0])[0]),cv2.IMREAD_UNCHANGED) 
+    data = np.zeros((len(pic_paths),len(os.listdir(pic_paths[0])),temp_img.shape[0],temp_img.shape[1]))
 
-#     for main_idx,img_paths in enumerate(pic_paths):
-#         all_img_paths = natsorted(os.listdir(img_paths))
-#         for idx,img_path in enumerate(all_img_paths):
-#             temp = cv2.imread(os.path.join(img_paths,img_path),cv2.IMREAD_UNCHANGED)
-#             data[main_idx,idx]=(temp.copy())
-#     data = data.astype(np.float32)
-#     return data
+    for main_idx,img_paths in enumerate(pic_paths):
+        all_img_paths = natsorted(os.listdir(img_paths))
+        for idx,img_path in enumerate(all_img_paths):
+            temp = cv2.imread(os.path.join(img_paths,img_path),cv2.IMREAD_UNCHANGED)
+            data[main_idx,idx]=(temp.copy())
+    data = data.astype(np.float32)
+    return data
+
+def load_data_png(path):
+    pic_paths = []
+    for i in os.listdir(path):
+        if i.endswith('.PNG') or i.endswith('.png'):
+            pic_paths.append(i)
+    pic_paths = natsorted(pic_paths)
+
+    temp_img = cv2.imread(path+pic_paths[0],cv2.IMREAD_UNCHANGED) 
+    imgs_from_folder = np.zeros((len(pic_paths),temp_img.shape[0],temp_img.shape[1]))
+    # imgs_from_folder = []
+    for i,j in enumerate(pic_paths):
+        aa = cv2.imread(path+j,cv2.IMREAD_UNCHANGED)
+        imgs_from_folder[i] = aa.copy()
+    imgs_from_folder = imgs_from_folder.astype(np.float32)
+    return imgs_from_folder
 
 def slope_mask(slope_arr):
     mask1 = np.zeros_like(slope_arr[0],dtype=np.float32)
