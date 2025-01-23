@@ -13,10 +13,11 @@ from skimage.transform import warp, AffineTransform
 
 def min_max(data1):
     maxx = np.max(data1)
+    minn = np.min(data1)
     if maxx==0:
         return data1
     else:
-        data1 = (data1-np.min(data1))/(maxx-np.min(data1))
+        data1 = (data1-minn)/(maxx-minn)
         return data1
 
 def load_nested_data_pickle(path):

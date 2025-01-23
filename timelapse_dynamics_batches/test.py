@@ -1,4 +1,6 @@
-from config import WithH2O2_top as PATHS
+import config
+import inspect
 
-
-print(PATHS.data_path)
+paths = [(name,obj)for name,obj in inspect.getmembers(config) if inspect.isclass(obj)]
+# print([name for name,obj in inspect.getmembers(config) if inspect.isclass(obj)])
+print(paths[0][1].data_path)

@@ -56,7 +56,7 @@ lbls['loaded_data'] = min_max(np.array(lbls['loaded_data']))
 
 print('Loading Data')
 
-with open(avg_data_save_pickle, 'rb') as handle:
+with open(PATHS.avg_data_save_pickle, 'rb') as handle:
     data = pickle.load(handle)
 data = min_max(data)
 
@@ -71,10 +71,10 @@ for batch_num in tqdm(range(data.shape[0])):
 with open(PATHS.rgb_save_file_pickle, 'wb') as handle:
     pickle.dump(all_rgb_data.astype(np.uint8), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-for idx_batch, batch in enumerate(all_rgb_data):
-    os.makedirs(f'{PATHS.rgb_save_path}rgb_batch_{idx_batch}',exist_ok=True)
-    for idx_img, img in enumerate(batch):
-        cv2.imwrite(f"{PATHS.rgb_save_path}rgb_batch_{idx_batch}/rgb_image_{idx_img}.PNG",img)
+# for idx_batch, batch in enumerate(all_rgb_data):
+#     os.makedirs(f'{PATHS.rgb_save_path}rgb_batch_{idx_batch}',exist_ok=True)
+#     for idx_img, img in enumerate(batch):
+#         cv2.imwrite(f"{PATHS.rgb_save_path}rgb_batch_{idx_batch}/rgb_image_{idx_img}.PNG",img)
     
 
 
