@@ -68,19 +68,12 @@ def ncc(a,b):
     b = b / np.linalg.norm(b) if np.linalg.norm(b)!=0 else b / 10
     return np.correlate(a.flatten(), b.flatten())
 
-# def min_max(data1):
-#     if np.all(data1 == data1[0]):
-#         return data1
-#     else:
-#         data1 = (data1-np.min(data1))/(np.max(data1)-np.min(data1))
-#         return data1
-
-def min_max(data1, global_min=None, global_max=None):    
-    min_val = np.min(data1) if global_min is None else global_min
-    max_val = np.max(data1) if global_max is None else global_max
-    if min_val == max_val:
-        return data1 
-    return (data1 - min_val) / (max_val - min_val)
+def min_max(data1):
+    if np.all(data1 == data1[0]):
+        return data1
+    else:
+        data1 = (data1-np.min(data1))/(np.max(data1)-np.min(data1))
+        return data1
 
 
 def mse_fun_tran(shif,x,y):
@@ -88,26 +81,28 @@ def mse_fun_tran(shif,x,y):
     warped = warp(y, tform,order=3)
     return 1-ncc(x,warped)
 
+# Fucntion for y-motion correction
+# combines 3 techniques (phase, manual, ants library)
 def ants_all_trans(data,UP,DOWN):
     transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
     for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
         temp_img = data[i+1][UP:DOWN].copy()
-        # PHASE
-        coords = phase_cross_correlation(min_max(data[i][UP:DOWN][:,:50])
-                                        ,min_max(temp_img[:,:50])
-                                        ,normalization=None,upsample_factor=20)[0]
-        if np.abs(coords[0])<=2:
+        ###### PHASE
+        coords = phase_cross_correlation(min_max(data[i][UP:DOWN][:,:])
+                                        ,min_max(temp_img[:,:])
+                                        ,normalization='phase',upsample_factor=20)[0]
+        if np.abs(coords[0])<=30:
             temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
             tff = AffineTransform(translation = (0,-coords[0]))
             transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
 
-        # MANUAL
+        ###### MANUAL
         temp_tform_manual = AffineTransform(translation=(0,0))
         temp_manual = temp_img.copy()
         for _ in range(5):
             move = minz(method='powell',fun = mse_fun_tran,x0 =(0),
-                        args = (data[i][UP:DOWN][:,:50]
-                                ,temp_manual[:,:50]))['x']
+                        args = (data[i][UP:DOWN][:,:]
+                                ,temp_manual[:,:]))['x']
             temp_transform = AffineTransform(translation=(0,move[0]))
             temp_manual = warp(temp_manual, temp_transform,order=3)
             temp_tform_manual = np.dot(temp_tform_manual,temp_transform)
@@ -115,19 +110,15 @@ def ants_all_trans(data,UP,DOWN):
         if np.abs(np.array(temp_tform_manual)[1,2])<=2:
             temp_img = warp(temp_img,temp_tform_manual,order=3)
             transforms_all[i+1:] = np.dot(transforms_all[i+1:],temp_tform_manual)
-        # # ANTS
-        # mat = scipy.io.loadmat(ants_reg_mapping(min_max(data[i][UP:DOWN][:,:50]),min_max(temp_img[:,:50]))[0])
-        # # mat = scipy.io.loadmat(ants_reg_mapping(min_max(data[i][UP:DOWN]),min_max(data[i+1][UP:DOWN]))[0])
-        # if np.abs(mat['AffineTransform_float_2_2'][-2:][0][0])<=2:
-        #     tff = AffineTransform(translation = (0,mat['AffineTransform_float_2_2'][-2:][0][0]))
-        #     # ar = np.vstack((mat['AffineTransform_float_2_2'].reshape(2,3,order='F'),[0,0,1]))
-        #     # ar[0,2],ar[1,2] = ar[1,2],ar[0,2]
-        #     # tff = AffineTransform(matrix = ar)
-        #     transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
+
+        ##### ANTS
+        mat = scipy.io.loadmat(ants_reg_mapping(min_max(data[i][UP:DOWN][:,:]),min_max(temp_img[:,:]))[0])
+        if np.abs(mat['AffineTransform_float_2_2'][-2:][0][0])<=2:
+            tff = AffineTransform(translation = (0,mat['AffineTransform_float_2_2'][-2:][0][0]))
+            transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
     return transforms_all
 
-
-
+# Extracts the cells near self interference
 def bottom_extract(data,mid):
     test = np.max(data.transpose(2,1,0),axis=0).copy()
     kk = fftshift(fft2(test[-(data[0].shape[0]-mid):-80]))
@@ -141,6 +132,7 @@ def bottom_extract(data,mid):
     UP_x,DOWN_x = ((2*mid - mir_UP_x)-(mir_DOWN_x - mir_UP_x)), (2*mid - mir_UP_x)
     return UP_x,DOWN_x,mir_UP_x,mir_DOWN_x
 
+# Extracts the cells near standard interference
 def top_extract(data,mid):
     test = np.max(data.transpose(2,1,0),axis=0).copy()
     bright_point = np.argmax(np.sum(test[:mid],axis=1))+30
@@ -163,10 +155,10 @@ def denoise_fft(data):
     kk = np.abs(ifft2(fftshift(kk)))
     return kk
 
-# def find_mid(data):
-#     n = data.shape[1]
-#     mid = (np.argmax(np.sum(data[0][:n//2],axis=1)) + data[0].shape[0])//2
-#     return mid
+def find_mid(data):
+    n = data.shape[1]
+    mid = (np.argmax(np.sum(data[0][:n//2],axis=1)) + data[0].shape[0])//2
+    return mid
 
 def denoise_signal(errs):
     kk = fft(errs)

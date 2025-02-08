@@ -50,6 +50,7 @@ def run_scans(scan_num):
     for i,j in tqdm(enumerate(pic_paths)):
         pics_without_line[i] = dicom.dcmread(path+j).pixel_array
     pics_without_line = pics_without_line.astype(np.float32)[:,np.r_[10:110,480:530]]
+    global_min, global_max = np.min(pics_without_line),np.max(pics_without_line)
     print(pics_without_line.shape)
 
 
@@ -78,6 +79,7 @@ def run_scans(scan_num):
         pics_without_line[i][:mid]  = warp(pics_without_line[i][:mid],AffineTransform(matrix=tr_all[i]),order=3)
 
     gg = pics_without_line
+    gg = min_max(gg,global_min,global_max)
 
     '''
     # X-MOTION

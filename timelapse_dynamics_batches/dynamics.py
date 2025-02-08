@@ -40,7 +40,7 @@ if __name__ == '__main__':
     data = ymotion(data)
     print('Y-MOTION CORRECTED')
 
-    window_size = 20
+    window_size = 30
     num_vols = data.shape[0] if data.shape[0] % 2 == 0 else data.shape[0] + 1
     masks_shape = ((num_vols - window_size) // 2, data.shape[1], data.shape[2], data.shape[3])
     masks = np.zeros(masks_shape, dtype=np.float32)
@@ -54,7 +54,7 @@ if __name__ == '__main__':
         for batch in range(0, data.shape[0] - window_size, 2):
             tasks.append((batch, slice_number, shm.name, window_size, data.shape))
 
-    with Pool(processes=120) as pool:
+    with Pool(processes=200) as pool:
         results = list(pool.imap(process_batch_shared, tasks))
     
     idx = 0
@@ -68,9 +68,9 @@ if __name__ == '__main__':
     os.makedirs(PATHS.mask_save_path,exist_ok=True)
     with open(PATHS.mask_save_file_pickle, 'wb') as handle:
         pickle.dump(masks, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    for idx_batch, batch in enumerate(masks):
-        os.makedirs(f'{PATHS.mask_save_path}batch_mask_{idx_batch}',exist_ok=True)
-        for idx_img, img in enumerate(batch):
-            cv2.imwrite(f"{PATHS.mask_save_path}batch_mask_{idx_batch}/mask_{idx_img}.PNG",(min_max(img)*((2**8)-1)).astype(np.uint8))
+    # for idx_batch, batch in enumerate(masks):
+    #     os.makedirs(f'{PATHS.mask_save_path}batch_mask_{idx_batch}',exist_ok=True)
+    #     for idx_img, img in enumerate(batch):
+    #         cv2.imwrite(f"{PATHS.mask_save_path}batch_mask_{idx_batch}/mask_{idx_img}.PNG",(min_max(img)*((2**8)-1)).astype(np.uint8))
     
 

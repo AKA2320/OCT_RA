@@ -14,6 +14,7 @@ from skimage.exposure import equalize_hist
 from skimage.exposure import equalize_adapthist
 from utils import *
 import config
+from config import WithH2O2_bottom,WithoutH2O2_bottom
 import inspect
 
 def global_min_max(data1,minn,maxx):
@@ -34,7 +35,8 @@ def get_rgb(mask,img,percent = 99.9):
 
 
 if __name__ == '__main__':
-    config_paths = [(name,obj) for name,obj in inspect.getmembers(config) if inspect.isclass(obj)]
+    # config_paths = [(name,obj) for name,obj in inspect.getmembers(config) if inspect.isclass(obj)]
+    config_paths = [('WithH2O2_bottom',WithH2O2_bottom),('WithoutH2O2_bottom',WithoutH2O2_bottom)]
     loaded_mask = []
     mask_names = []
     for path_name,path_obj in config_paths:

@@ -68,12 +68,19 @@ def ncc(a,b):
     b = b / np.linalg.norm(b) if np.linalg.norm(b)!=0 else b / 10
     return np.correlate(a.flatten(), b.flatten())
 
-def min_max(data1):
-    if np.all(data1 == data1[0]):
-        return data1
-    else:
-        data1 = (data1-np.min(data1))/(np.max(data1)-np.min(data1))
-        return data1
+# def min_max(data1):
+#     if np.all(data1 == data1[0]):
+#         return data1
+#     else:
+#         data1 = (data1-np.min(data1))/(np.max(data1)-np.min(data1))
+#         return data1
+
+def min_max(data1, global_min=None, global_max=None):    
+    min_val = np.min(data1) if global_min is None else global_min
+    max_val = np.max(data1) if global_max is None else global_max
+    if min_val == max_val:
+        return data1 
+    return (data1 - min_val) / (max_val - min_val)
 
 
 def mse_fun_tran(shif,x,y):
@@ -86,8 +93,8 @@ def ants_all_trans(data,UP,DOWN):
     for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
         temp_img = data[i+1][UP:DOWN].copy()
         # PHASE
-        coords = phase_cross_correlation(min_max(data[i][UP:DOWN][:,:50])
-                                        ,min_max(temp_img[:,:50])
+        coords = phase_cross_correlation((data[i][UP:DOWN][:,:50])
+                                        ,(temp_img[:,:50])
                                         ,normalization=None,upsample_factor=20)[0]
         if np.abs(coords[0])<=2:
             temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
@@ -156,10 +163,10 @@ def denoise_fft(data):
     kk = np.abs(ifft2(fftshift(kk)))
     return kk
 
-# def find_mid(data):
-#     n = data.shape[1]
-#     mid = (np.argmax(np.sum(data[0][:n//2],axis=1)) + data[0].shape[0])//2
-#     return mid
+def find_mid(data):
+    n = data.shape[1]
+    mid = (np.argmax(np.sum(data[0][:n//2],axis=1)) + data[0].shape[0])//2
+    return mid
 
 def denoise_signal(errs):
     kk = fft(errs)

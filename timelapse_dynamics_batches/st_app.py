@@ -4,7 +4,7 @@ import pickle
 import os
 
 # Directory containing datasets (update this path as needed)
-DATASET_DIR = "rgb_data_combined"
+DATASET_DIR = "rgb_data_combined/only_self_inter"
 
 # Function to load dataset
 def load_data(file_path, enface=True):

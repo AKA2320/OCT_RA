@@ -75,7 +75,7 @@ def run_scans(scan_num):
 
     gg = pics_without_line
 
-    '''
+
     # X-MOTION
     gg = pics_without_line
     UP,DOWN,mir_UP,mir_DOWN = bottom_extract(gg,mid)
@@ -139,7 +139,6 @@ def run_scans(scan_num):
 
     for i in tqdm(range(gg.shape[0])):
         gg[i] = warp(gg[i],AffineTransform(matrix=transforms_all_corrected[i]),order=3)
-    '''
 
     # SAVING
     # os.makedirs(f'registered_pickles/{scan_num}',exist_ok=True)

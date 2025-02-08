@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     print("SHAPE: ",data.shape)
 
-    window_size = 20
+    window_size = 30
     num_vols = data.shape[0] if data.shape[0] % 2 == 0 else data.shape[0] + 1
     avg_data_shape = ((num_vols - window_size) // 2, data.shape[1], data.shape[2], data.shape[3])
     avg_data = np.zeros(avg_data_shape, dtype=np.float32)
