@@ -62,6 +62,7 @@ if __name__ == '__main__':
         for batch_number, batch in enumerate(range(0, data.shape[0] - window_size, 2)):
             masks[batch_number, slice_number] = results[idx]
             idx += 1
+            
     shm.close()
     shm.unlink()
     print('MASKS GENERATED')
