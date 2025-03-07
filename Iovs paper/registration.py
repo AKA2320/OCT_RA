@@ -81,9 +81,9 @@ def run_scans(scan_num):
     # better correcting the y-motion using functions
     tr_all = ants_all_trans(original_data,UP,DOWN) # fucntion definition in util_funcs.py
     for i in tqdm(range(original_data.shape[0]),desc='warping'):
-        original_data[i][:mid]  = warp(original_data[i][:mid],AffineTransform(matrix=tr_all[i]),order=3)
+        y_corrected_data[i][:mid]  = warp(original_data[i][:mid],AffineTransform(matrix=tr_all[i]),order=3)
 
-    transforms_all = original_data
+    y_corrected_data = original_data
 
     ##### X-MOTION without anomaly
     # Extract the cropped region for cells near standard and self interference

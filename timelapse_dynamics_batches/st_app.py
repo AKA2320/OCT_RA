@@ -2,23 +2,40 @@ import streamlit as st
 import numpy as np
 import pickle
 import os
+from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
+import matplotlib.pyplot as plt
 
 # Directory containing datasets (update this path as needed)
-DATASET_DIR = "rgb_data_combined/only_self_inter"
+DATASET_DIR = "/Users/akapatil/Documents/dynamicOCT/swift/"
+# DATASET_DIR = "/Users/akapatil/Documents/OCT/timelapse_dynamics_batches/rgb_data_combined/"
 
 # Function to load dataset
 def load_data(file_path, enface=True):
     if enface:
         with open(file_path, 'rb') as f:
-            data = pickle.load(f).transpose(0, 2, 1, 3, 4)[..., ::-1]
+            if "swift_rgb" in file_path:
+                data = pickle.load(f).transpose(0, 2, 1, 3, 4)*255
+            else:
+                data = pickle.load(f).transpose(0, 2, 1, 3, 4)[...,::-1]
     else:
         with open(file_path, 'rb') as f:
-            data = pickle.load(f)[..., ::-1]
+            if "swift_rgb" in file_path:
+                data = pickle.load(f)*255
+            else:
+                data = pickle.load(f)[...,::-1]
     return data
+
+def adjust_hue_clip(rgb_img, clip_val = 0):
+    hsv_3channel = rgb_to_hsv(rgb_img)
+    hsv_3channel[:,:,0] = np.where(hsv_3channel[:,:,0]<clip_val,0,hsv_3channel[:,:,0])
+    new_rgb = hsv_to_rgb(hsv_3channel)
+    fig, ax = plt.subplots(); ax.hist(hsv_3channel[:,:,0].flatten(), bins=30)
+    return new_rgb.astype(np.uint8) , fig
+
 
 # Main app
 st.title("Image Visualization")
-#st.write("Visualize and compare 5D data interactively by selecting two datasets, each with independent controls for batch and slice.")
+
 
 # Initialize session state for dataset caching
 if "loaded_data_1" not in st.session_state:
@@ -83,12 +100,19 @@ if os.path.exists(DATASET_DIR):
                 st.subheader("Dataset 1")
                 batch_1 = st.slider("Select Batch (Temporal)", 0, num_batches_1 - 1, 0, key="batch1")
                 slice_index_1 = st.slider("Select Slice (Depth)", 0, num_slices_1 - 1, 0, key="slice1")
+                adjust_contrast_1 = st.slider("Adjust Contrast", 0.0, 0.33, 0.0, key="contrast1")
 
+                # print(adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1).min(),adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1).max())
+
+                # print((data1[batch_1, slice_index_1]).min(),(data1[batch_1, slice_index_1]).max())
                 # Display the selected image
+                img_to_plot_1, histogram_1 = adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1)
                 st.image(
-                    data1[batch_1, slice_index_1],
+                    img_to_plot_1,
                     use_container_width=True,
                 )
+                st.pyplot(histogram_1,use_container_width=True)
+
             else:
                 st.warning("Dataset 1 not loaded or invalid.")
 
@@ -98,12 +122,15 @@ if os.path.exists(DATASET_DIR):
                 st.subheader("Dataset 2")
                 batch_2 = st.slider("Select Batch (Temporal)", 0, num_batches_2 - 1, 0, key="batch2")
                 slice_index_2 = st.slider("Select Slice (Depth)", 0, num_slices_2 - 1, 0, key="slice2")
+                adjust_contrast_2 = st.slider("Adjust Contrast", 0.0, 0.33, 0.0, key="contrast2")
 
+                img_to_plot_2, histogram_2 = adjust_hue_clip(data2[batch_2, slice_index_2],adjust_contrast_2)
                 # Display the selected image
                 st.image(
-                    data2[batch_2, slice_index_2],
+                    img_to_plot_2,
                     use_container_width=True,
                 )
+                st.pyplot(histogram_2,use_container_width=True)
             else:
                 st.warning("Dataset 2 not loaded or invalid.")
     else:
