@@ -25,9 +25,16 @@ def load_data(file_path, enface=True):
                 data = pickle.load(f)[...,::-1]
     return data
 
-def adjust_hue_clip(rgb_img, clip_val = 0):
+def adjust_hue_clip(rgb_img, min_clip_val = 0,max_clip_val = 0.7):
     hsv_3channel = rgb_to_hsv(rgb_img)
-    hsv_3channel[:,:,0] = np.where(hsv_3channel[:,:,0]<clip_val,0,hsv_3channel[:,:,0])
+    max_val = hsv_3channel[:,:,0].max()
+
+    # minclip
+    hsv_3channel[:,:,0] = np.where(hsv_3channel[:,:,0]<min_clip_val, 0, hsv_3channel[:,:,0])
+
+    # maxclip
+    hsv_3channel[:,:,0] = np.where(hsv_3channel[:,:,0]>max_clip_val, max_val, hsv_3channel[:,:,0])
+
     new_rgb = hsv_to_rgb(hsv_3channel)
     fig, ax = plt.subplots(); ax.hist(hsv_3channel[:,:,0].flatten(), bins=30)
     return new_rgb.astype(np.uint8) , fig
@@ -100,13 +107,14 @@ if os.path.exists(DATASET_DIR):
                 st.subheader("Dataset 1")
                 batch_1 = st.slider("Select Batch (Temporal)", 0, num_batches_1 - 1, 0, key="batch1")
                 slice_index_1 = st.slider("Select Slice (Depth)", 0, num_slices_1 - 1, 0, key="slice1")
-                adjust_contrast_1 = st.slider("Adjust Contrast", 0.0, 0.33, 0.0, key="contrast1")
+                adjust_contrast_min_1 = st.slider("Adjust Contrast(MIN)", 0.0, 0.7, 0.0, key="contrast_min1")
+                adjust_contrast_max_1 = st.slider("Adjust Contrast(MAX)", 0.0, 0.7, 0.7, key="contrast_max1")
 
                 # print(adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1).min(),adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1).max())
 
                 # print((data1[batch_1, slice_index_1]).min(),(data1[batch_1, slice_index_1]).max())
                 # Display the selected image
-                img_to_plot_1, histogram_1 = adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_1)
+                img_to_plot_1, histogram_1 = adjust_hue_clip(data1[batch_1, slice_index_1],adjust_contrast_min_1,adjust_contrast_max_1)
                 st.image(
                     img_to_plot_1,
                     use_container_width=True,
@@ -122,9 +130,10 @@ if os.path.exists(DATASET_DIR):
                 st.subheader("Dataset 2")
                 batch_2 = st.slider("Select Batch (Temporal)", 0, num_batches_2 - 1, 0, key="batch2")
                 slice_index_2 = st.slider("Select Slice (Depth)", 0, num_slices_2 - 1, 0, key="slice2")
-                adjust_contrast_2 = st.slider("Adjust Contrast", 0.0, 0.33, 0.0, key="contrast2")
+                adjust_contrast_min_2 = st.slider("Adjust Contrast(MIN)", 0.0, 0.7, 0.0, key="contrast_min2")
+                adjust_contrast_max_2 = st.slider("Adjust Contrast(MAX)", 0.0, 0.7, 0.7, key="contrast_max2")
 
-                img_to_plot_2, histogram_2 = adjust_hue_clip(data2[batch_2, slice_index_2],adjust_contrast_2)
+                img_to_plot_2, histogram_2 = adjust_hue_clip(data2[batch_2, slice_index_2],adjust_contrast_min_2,adjust_contrast_max_2)
                 # Display the selected image
                 st.image(
                     img_to_plot_2,

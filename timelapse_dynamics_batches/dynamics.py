@@ -40,7 +40,7 @@ if __name__ == '__main__':
     data = ymotion(data)
     print('Y-MOTION CORRECTED')
 
-    window_size = 30
+    window_size = 20
     num_vols = data.shape[0] if data.shape[0] % 2 == 0 else data.shape[0] + 1
     masks_shape = ((num_vols - window_size) // 2, data.shape[1], data.shape[2], data.shape[3])
     masks = np.zeros(masks_shape, dtype=np.float32)
