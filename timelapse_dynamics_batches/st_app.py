@@ -13,13 +13,13 @@ DATASET_DIR = "/Users/akapatil/Documents/dynamicOCT/swift/"
 def load_data(file_path, enface=True):
     if enface:
         with open(file_path, 'rb') as f:
-            if "swift_rgb" in file_path:
+            if ("swift_rgb" in file_path) or ("aliv_rgb" in file_path):
                 data = pickle.load(f).transpose(0, 2, 1, 3, 4)*255
             else:
                 data = pickle.load(f).transpose(0, 2, 1, 3, 4)[...,::-1]
     else:
         with open(file_path, 'rb') as f:
-            if "swift_rgb" in file_path:
+            if ("swift_rgb" in file_path) or ("aliv_rgb" in file_path):
                 data = pickle.load(f)*255
             else:
                 data = pickle.load(f)[...,::-1]

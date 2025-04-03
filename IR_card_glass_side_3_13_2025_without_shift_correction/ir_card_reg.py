@@ -92,23 +92,23 @@ def run_scans(scan_num):
         original_data[i][:mid]  = warp(original_data[i][:mid],AffineTransform(matrix=tr_all[i]),order=3)
 
     temp_img = original_data[:,972,250:450].copy()
-    init_move = 0
-    # kk = []
-    # for i in range(100):
-    #     move = minz(method='powell',fun = shift_func,x0 =(0),bounds = ([(-100,100)]),
-    #                         args = (temp_img[i]
-    #                                 ,temp_img[i+1]
-    #                                 ,0))['x']
-    #     kk.append(move[0]*2)
 
-    # init_move = np.median(kk[::2])
-    # for i in range(1,temp_img.shape[0],2):
-    #     temp_img[i] = scp.shift(temp_img[i], init_move,order=3,mode='nearest')
+    kk = []
+    for i in range(100):
+        move = minz(method='powell',fun = shift_func,x0 =(0),bounds = ([(-100,100)]),
+                            args = (temp_img[i]
+                                    ,temp_img[i+1]
+                                    ,0))['x']
+        kk.append(move[0]*2)
 
-    # if init_move<0:
-    #     temp_img = temp_img[:,:-int(init_move)]
-    # else:
-    #     temp_img = temp_img[:,int(init_move):]
+    init_move = np.median(kk[::2])
+    for i in range(1,temp_img.shape[0],2):
+        temp_img[i] = scp.shift(temp_img[i], init_move,order=3,mode='nearest')
+
+    if init_move<0:
+        temp_img = temp_img[:,:-int(init_move)]
+    else:
+        temp_img = temp_img[:,int(init_move):]
 
     sf = [0]
     for i in tqdm(range(temp_img.shape[0]-1)):
@@ -117,7 +117,7 @@ def run_scans(scan_num):
             rt = 0
             past_shift = 0
             for _ in range(15):
-                    move = minz(method='L-BFGS-B',fun = shift_func,x0 =(0),bounds = ([(-5,5)]),
+                    move = minz(method='L-BFGS-B',fun = shift_func,x0 =(0),bounds = ([(-4,4)]),
                             args = (st
                                     ,mv
                                     ,past_shift))['x']
@@ -126,7 +126,7 @@ def run_scans(scan_num):
                     rt+=move[0]/2
             sf.append(rt*2)
 
-    sf = np.array(sf)
+    # sf = np.array(sf)
     # with open('../dead_mice/shift_IRcard2.pickle', 'wb') as file:
     #     pickle.dump(sf, file)
     # quit()
