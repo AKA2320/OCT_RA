@@ -63,10 +63,20 @@ def ants_reg_mapping(stat,mov):
                         aff_iterations=(1100, 1200, 1000, 1000))
     return reg['fwdtransforms']
 
-def ncc(a,b):
-    a = a / np.linalg.norm(a) if np.linalg.norm(a)!=0 else a / 10
-    b = b / np.linalg.norm(b) if np.linalg.norm(b)!=0 else b / 10
-    return np.correlate(a.flatten(), b.flatten())
+# def ncc(a,b):
+#     a = a / np.linalg.norm(a) if np.linalg.norm(a)!=0 else a / 10
+#     b = b / np.linalg.norm(b) if np.linalg.norm(b)!=0 else b / 10
+#     return np.correlate(a.flatten(), b.flatten())
+
+from scipy.signal import correlate2d
+def ncc(array1, array2):
+    correlation = correlate2d(array1, array2, mode='valid')
+    array1_norm = np.linalg.norm(array1)
+    array2_norm = np.linalg.norm(array2)
+    if array1_norm == 0 or array2_norm == 0:
+        return np.zeros_like(correlation)
+    normalized_correlation = correlation / (array1_norm * array2_norm)
+    return normalized_correlation
 
 def min_max(data1):
     if np.all(data1 == data1[0]):
@@ -81,42 +91,42 @@ def mse_fun_tran(shif,x,y):
     warped = warp(y, tform,order=3)
     return 1-ncc(x,warped)
 
-# Fucntion for y-motion correction
-# combines 3 techniques (phase, manual, ants library)
-def ants_all_trans(data,UP,DOWN):
-    transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
-    for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
-        temp_img = data[i+1][UP:DOWN].copy()
-        ###### PHASE
-        coords = phase_cross_correlation(min_max(data[i][UP:DOWN][:,:50])
-                                        ,min_max(temp_img[:,:50])
-                                        ,normalization='phase',upsample_factor=20)[0]
-        if np.abs(coords[0])<=30:
-            temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
-            tff = AffineTransform(translation = (0,-coords[0]))
-            transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
+# # Fucntion for y-motion correction
+# # combines 3 techniques (phase, manual, ants library)
+# def ants_all_trans(data,UP,DOWN):
+#     transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
+#     for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
+#         temp_img = data[i+1][UP:DOWN].copy()
+#         ###### PHASE
+#         coords = phase_cross_correlation(min_max(data[i][UP:DOWN][:,:50])
+#                                         ,min_max(temp_img[:,:50])
+#                                         ,normalization='phase',upsample_factor=20)[0]
+#         if np.abs(coords[0])<=30:
+#             temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
+#             tff = AffineTransform(translation = (0,-coords[0]))
+#             transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
 
-        ###### MANUAL
-        temp_tform_manual = AffineTransform(translation=(0,0))
-        temp_manual = temp_img.copy()
-        for _ in range(5):
-            move = minz(method='powell',fun = mse_fun_tran,x0 =(0),
-                        args = (data[i][UP:DOWN][:,:]
-                                ,temp_manual[:,:]))['x']
-            temp_transform = AffineTransform(translation=(0,move[0]))
-            temp_manual = warp(temp_manual, temp_transform,order=3)
-            temp_tform_manual = np.dot(temp_tform_manual,temp_transform)
-        temp_tform_manual = AffineTransform(matrix = temp_tform_manual)
-        if np.abs(np.array(temp_tform_manual)[1,2])<=2:
-            temp_img = warp(temp_img,temp_tform_manual,order=3)
-            transforms_all[i+1:] = np.dot(transforms_all[i+1:],temp_tform_manual)
+#         ###### MANUAL
+#         temp_tform_manual = AffineTransform(translation=(0,0))
+#         temp_manual = temp_img.copy()
+#         for _ in range(5):
+#             move = minz(method='powell',fun = mse_fun_tran,x0 =(0),
+#                         args = (data[i][UP:DOWN][:,:]
+#                                 ,temp_manual[:,:]))['x']
+#             temp_transform = AffineTransform(translation=(0,move[0]))
+#             temp_manual = warp(temp_manual, temp_transform,order=3)
+#             temp_tform_manual = np.dot(temp_tform_manual,temp_transform)
+#         temp_tform_manual = AffineTransform(matrix = temp_tform_manual)
+#         if np.abs(np.array(temp_tform_manual)[1,2])<=2:
+#             temp_img = warp(temp_img,temp_tform_manual,order=3)
+#             transforms_all[i+1:] = np.dot(transforms_all[i+1:],temp_tform_manual)
 
-        ##### ANTS
-        mat = scipy.io.loadmat(ants_reg_mapping(min_max(data[i][UP:DOWN][:,:]),min_max(temp_img[:,:]))[0])
-        if np.abs(mat['AffineTransform_float_2_2'][-2:][0][0])<=2:
-            tff = AffineTransform(translation = (0,mat['AffineTransform_float_2_2'][-2:][0][0]))
-            transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
-    return transforms_all
+#         ##### ANTS
+#         mat = scipy.io.loadmat(ants_reg_mapping(min_max(data[i][UP:DOWN][:,:]),min_max(temp_img[:,:]))[0])
+#         if np.abs(mat['AffineTransform_float_2_2'][-2:][0][0])<=2:
+#             tff = AffineTransform(translation = (0,mat['AffineTransform_float_2_2'][-2:][0][0]))
+#             transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
+#     return transforms_all
 
 # Extracts the cells near self interference
 def bottom_extract(data,mid):
