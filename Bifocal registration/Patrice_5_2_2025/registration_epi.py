@@ -239,15 +239,15 @@ def load_data(dirname, scan_num):
         if i.endswith('.h5'):
             pic_paths.append(i)
     with h5py.File(path+pic_paths[0], 'r') as hf:
-        original_data = hf['volume'][:,150:600,:]
+        original_data = hf['volume'][:,70:670,:]
     return original_data
 
 def main(dirname, scan_num):
     original_data = load_data(dirname,scan_num)
     sum_img = np.max(original_data[:,:,:],axis=2)
     peaks = find_peaks(np.sum(sum_img,axis=0),distance = 30)[0]
-    enface_extraction_rows = peaks[np.argsort(np.sum(sum_img,axis=0)[peaks])[-2:]]
-    enface_extraction_rows = np.sort(enface_extraction_rows)
+    enface_extraction_rows = peaks[np.argsort(np.sum(sum_img,axis=0)[peaks])[-1]]
+    # enface_extraction_rows = np.sort(enface_extraction_rows)
     print('ROWS:',enface_extraction_rows)
     
     # FLATTENING PART
@@ -256,10 +256,10 @@ def main(dirname, scan_num):
     DOWN_flat = min(DOWN_flat, original_data.shape[2])
     original_data = flatten_data(original_data,UP_flat,DOWN_flat)
 
-    UP_flat,DOWN_flat = enface_extraction_rows.max()-30,enface_extraction_rows.max()+30
-    UP_flat = max(UP_flat,0)
-    DOWN_flat = min(DOWN_flat, original_data.shape[2])
-    original_data = flatten_data(original_data,UP_flat,DOWN_flat)
+    # UP_flat,DOWN_flat = enface_extraction_rows.max()-30,enface_extraction_rows.max()+30
+    # UP_flat = max(UP_flat,0)
+    # DOWN_flat = min(DOWN_flat, original_data.shape[2])
+    # original_data = flatten_data(original_data,UP_flat,DOWN_flat)
 
     # Y-MOTION PART
     UP_y,DOWN_y = enface_extraction_rows.min()-50,enface_extraction_rows.min()+50
@@ -267,19 +267,19 @@ def main(dirname, scan_num):
     DOWN_y = min(DOWN_y, original_data.shape[2])
     original_data = y_motion_correcting(original_data,UP_y,DOWN_y)
 
-    UP_y,DOWN_y = enface_extraction_rows.max()-30,enface_extraction_rows.max()+30
-    UP_y = max(UP_y,0)
-    DOWN_y = min(DOWN_y, original_data.shape[2])
-    original_data = y_motion_correcting(original_data,UP_y,DOWN_y)
+    # UP_y,DOWN_y = enface_extraction_rows.max()-30,enface_extraction_rows.max()+30
+    # UP_y = max(UP_y,0)
+    # DOWN_y = min(DOWN_y, original_data.shape[2])
+    # original_data = y_motion_correcting(original_data,UP_y,DOWN_y)
 
     # X-MOTION PART
 
     sum_img = np.max(original_data[:,:,:],axis=2)
     peaks = find_peaks(np.sum(sum_img,axis=0),distance = 30)[0]
-    enface_extraction_rows = peaks[np.argsort(np.sum(sum_img,axis=0)[peaks])[-2:]]
-    enface_extraction_rows = np.sort(enface_extraction_rows)
+    enface_extraction_rows = peaks[np.argsort(np.sum(sum_img,axis=0)[peaks])[-1]]
+    # enface_extraction_rows = np.sort(enface_extraction_rows)
     print('ROWS:',enface_extraction_rows)
-    UP_x,DOWN_x = enface_extraction_rows.min()-50, enface_extraction_rows.min()-10
+    UP_x,DOWN_x = enface_extraction_rows.min()+10, enface_extraction_rows.min()+50
     UP_x = max(UP_x,0)
     DOWN_x = min(DOWN_x, original_data.shape[2])
 
@@ -294,7 +294,7 @@ def main(dirname, scan_num):
     for i in tqdm(range(1,original_data.shape[0],2),desc='warping'):
         original_data[i]  = warp(original_data[i],AffineTransform(matrix=tr_all[i]),order=3)
 
-    folder_save = 'registered_endo'
+    folder_save = 'registered_epi'
     os.makedirs(folder_save,exist_ok=True)
     hdf5_filename = f'{folder_save}/{scan_num}.h5'
     with h5py.File(hdf5_filename, 'w') as hf:
@@ -302,16 +302,16 @@ def main(dirname, scan_num):
 
 
 if __name__ == "__main__":
-    data_dirname = 'batch1_endo'
-    if os.path.exists('registered_endo/'):
-        done_scans = set([i for i in os.listdir('registered_endo/') if (i.startswith('scan'))])
+    data_dirname = 'batch_epi'
+    if os.path.exists('registered_epi/'):
+        done_scans = set([i for i in os.listdir('registered_epi/') if (i.startswith('scan'))])
         print(done_scans)
     else:
         done_scans={}
     scans = [i for i in os.listdir(data_dirname) if (i.startswith('scan')) and (i+'.h5' not in done_scans)]
     # scans = ['scan2']
     scans = natsorted(scans)
-    scans.remove('scan15')
+    # scans.remove('scan15')
     print('REMAINING',scans)
     for sc in scans:
         print(f'Processing {sc}-----------------------------------------')
