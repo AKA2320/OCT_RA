@@ -1,38 +1,39 @@
 import pydicom as dicom
-import matplotlib.pylab as plt
+# import matplotlib.pylab as plt
 import numpy as np
 import os
-import skimage as ski
-from skimage.transform import warp, AffineTransform, pyramid_expand, pyramid_reduce
+# import skimage as ski
+# from skimage.transform import warp, AffineTransform, pyramid_expand, pyramid_reduce
 import cv2
-import scipy
+# import scipy
 from natsort import natsorted
 # from sklearn.mixture import GaussianMixture
-from skimage.registration import phase_cross_correlation
-from scipy import ndimage as scp
-from tqdm import tqdm
+# from skimage.registration import phase_cross_correlation
+# from scipy import ndimage as scp
+# from tqdm import tqdm
 from skimage.metrics import normalized_root_mse as nrm
 # from statsmodels.tsa.stattools import acf
-import pickle
+# import pickle
 from scipy.signal import find_peaks
 # from sklearn.cluster import KMeans
 # from sklearn.decomposition import PCA
 from scipy.fftpack import fft2, fftshift, ifft2, fft, ifft
-import time
-import math
-from skimage.exposure import equalize_hist
-from skimage.exposure import equalize_adapthist
+# import time
+# import math
+# from skimage.exposure import equalize_hist
+# from skimage.exposure import equalize_adapthist
 # from skimage.feature import SIFT, match_descriptors,plot_matches
 # from skimage.feature import ORB
-import ants.registration as ants_register
+# import ants.registration as ants_register
 import ants
-from scipy.optimize import minimize as minz
+# from scipy.optimize import minimize as minz
 from scipy import optimize
 # from itertools import permutations 
 from skimage.filters import threshold_otsu
 from skimage.metrics import normalized_mutual_information as nmi
-from skimage.metrics import mean_squared_error as mse
-from tifffile import imread as tiffread
+# from skimage.metrics import mean_squared_error as mse
+# from tifffile import imread as tiffread
+from scipy.signal import correlate2d
 
 
 def load_data(path_num,path_all = False):
@@ -55,18 +56,12 @@ def load_data(path_num,path_all = False):
     imgs_from_folder = imgs_from_folder.astype(np.float32)
     return imgs_from_folder
 
-
-def ants_reg_mapping(stat,mov):
-    ants1 = ants.from_numpy(stat.astype(np.float32))
-    ants2 = ants.from_numpy(mov.astype(np.float32))
-    reg = ants_register(ants1,ants2,type_of_transform = 'Translation',
-                        aff_iterations=(1100, 1200, 1000, 1000))
-    return reg['fwdtransforms']
-
-# def ncc1D(a,b):
-#     a = a / np.linalg.norm(a) if np.linalg.norm(a)!=0 else a / 10
-#     b = b / np.linalg.norm(b) if np.linalg.norm(b)!=0 else b / 10
-#     return np.correlate(a.flatten(), b.flatten())
+# def ants_reg_mapping(stat,mov):
+#     ants1 = ants.from_numpy(stat.astype(np.float32))
+#     ants2 = ants.from_numpy(mov.astype(np.float32))
+#     reg = ants_register(ants1,ants2,type_of_transform = 'Translation',
+#                         aff_iterations=(1100, 1200, 1000, 1000))
+#     return reg['fwdtransforms']
 
 def ncc1d(array1, array2):
     correlation = np.correlate(array1, array2, mode='valid')
@@ -77,7 +72,7 @@ def ncc1d(array1, array2):
     normalized_correlation = correlation / (array1_norm * array2_norm)
     return normalized_correlation
 
-from scipy.signal import correlate2d
+
 def ncc(array1, array2):
     correlation = correlate2d(array1, array2, mode='valid')
     array1_norm = np.linalg.norm(array1)
@@ -205,7 +200,6 @@ def denoise_signal1D_err_calc(errs , rows = 20):
     kk = abs(ifft(kk))
     return kk
 
-
 def preprocess_img(data):
     data = data.transpose(1,0)
     data = min_max(data)
@@ -213,7 +207,6 @@ def preprocess_img(data):
     data = np.dstack([[data]*3]).transpose(1,2,0)
     data = np.ascontiguousarray(data)
     return data
-
 
 def merge_intervals(intervals):
     if not intervals:
