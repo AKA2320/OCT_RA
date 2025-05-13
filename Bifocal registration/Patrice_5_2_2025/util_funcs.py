@@ -102,49 +102,49 @@ def min_max(data1, global_min=None, global_max=None):
     return (data1 - min_val) / (max_val - min_val)
 
 
-def mse_fun_tran(shif, x, y , past_shift):
-    x = warp(x, AffineTransform(translation=(0,-past_shift)),order=3)
-    y = warp(y, AffineTransform(translation=(0,past_shift)),order=3)
+# def mse_fun_tran(shif, x, y , past_shift):
+#     x = warp(x, AffineTransform(translation=(0,-past_shift)),order=3)
+#     y = warp(y, AffineTransform(translation=(0,past_shift)),order=3)
 
-    warped_x_stat = warp(x, AffineTransform(translation=(0,-shif[0])),order=3)
-    warped_y_mov = warp(y, AffineTransform(translation=(0,shif[0])),order=3)
+#     warped_x_stat = warp(x, AffineTransform(translation=(0,-shif[0])),order=3)
+#     warped_y_mov = warp(y, AffineTransform(translation=(0,shif[0])),order=3)
 
-    return (1-ncc(warped_x_stat ,warped_y_mov))
+#     return (1-ncc(warped_x_stat ,warped_y_mov))
 
 
-def ants_all_trans(data,UP,DOWN):
-    transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
-    for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
-        temp_img = data[i+1][UP:DOWN][:,-50:].copy()
-        stat = data[i][UP:DOWN][:,-50:].copy()
-        # PHASE
-        coords = phase_cross_correlation((stat)
-                                        ,(temp_img)
-                                        ,normalization=None,upsample_factor=20)[0]
-        if np.abs(coords[0])<=5:
-            temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
-            tff = AffineTransform(translation = (0,-coords[0]))
-            transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
+# def ants_all_trans(data,UP,DOWN):
+#     transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
+#     for i in tqdm(range(data.shape[0]-1),desc='tr_all'):
+#         temp_img = data[i+1][UP:DOWN][:,-50:].copy()
+#         stat = data[i][UP:DOWN][:,-50:].copy()
+#         # PHASE
+#         coords = phase_cross_correlation((stat)
+#                                         ,(temp_img)
+#                                         ,normalization=None,upsample_factor=20)[0]
+#         if np.abs(coords[0])<=5:
+#             temp_img = warp(temp_img,AffineTransform(translation = (0,-coords[0])),order=3)
+#             tff = AffineTransform(translation = (0,-coords[0]))
+#             transforms_all[i+1:] = np.dot(transforms_all[i+1:],tff)
 
-        # MANUAL
-        temp_tform_manual = AffineTransform(translation=(0,0))
-        temp_manual = temp_img.copy()
-        past_shift = 0
-        for _ in range(5):
-            move = minz(method='powell',fun = mse_fun_tran,x0 =(0), bounds=[(-5,5)],
-                        args = (stat
-                                ,temp_manual
-                                ,past_shift))['x']
-            temp_transform = AffineTransform(translation=(0,move[0]))
-            past_shift += move[0]
-            # temp_manual = warp(temp_manual, temp_transform,order=3)
-            temp_tform_manual = np.dot(temp_tform_manual,temp_transform)
-        temp_tform_manual = AffineTransform(matrix = temp_tform_manual)
-        # if np.abs(np.array(temp_tform_manual)[1,2])<=2:
-        #     temp_img = warp(temp_img,temp_tform_manual,order=3)
-        transforms_all[i+1:] = np.dot(transforms_all[i+1:],temp_tform_manual)
+#         # MANUAL
+#         temp_tform_manual = AffineTransform(translation=(0,0))
+#         temp_manual = temp_img.copy()
+#         past_shift = 0
+#         for _ in range(5):
+#             move = minz(method='powell',fun = mse_fun_tran,x0 =(0), bounds=[(-5,5)],
+#                         args = (stat
+#                                 ,temp_manual
+#                                 ,past_shift))['x']
+#             temp_transform = AffineTransform(translation=(0,move[0]))
+#             past_shift += move[0]
+#             # temp_manual = warp(temp_manual, temp_transform,order=3)
+#             temp_tform_manual = np.dot(temp_tform_manual,temp_transform)
+#         temp_tform_manual = AffineTransform(matrix = temp_tform_manual)
+#         # if np.abs(np.array(temp_tform_manual)[1,2])<=2:
+#         #     temp_img = warp(temp_img,temp_tform_manual,order=3)
+#         transforms_all[i+1:] = np.dot(transforms_all[i+1:],temp_tform_manual)
 
-    return transforms_all
+#     return transforms_all
 
 
 
@@ -204,3 +204,26 @@ def denoise_signal1D_err_calc(errs , rows = 20):
     kk[rows:] = 0
     kk = abs(ifft(kk))
     return kk
+
+
+def preprocess_img(data):
+    data = data.transpose(1,0)
+    data = min_max(data)
+    data = (data*255).astype(np.uint8)
+    data = np.dstack([[data]*3]).transpose(1,2,0)
+    data = np.ascontiguousarray(data)
+    return data
+
+
+def merge_intervals(intervals):
+    if not intervals:
+        return []
+    intervals.sort(key=lambda x: x[0])
+    merged = [intervals[0]]
+    for current in intervals[1:]:
+        last = merged[-1]
+        if current[0] <= last[1]:  # overlap
+            last[1] = max(last[1], current[1])  # merge
+        else:
+            merged.append(current)
+    return merged
