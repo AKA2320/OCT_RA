@@ -1,4 +1,4 @@
-import pydicom as dicom
+# import pydicom as dicom
 # import matplotlib.pylab as plt
 import numpy as np
 import os
@@ -11,10 +11,10 @@ from natsort import natsorted
 # from skimage.registration import phase_cross_correlation
 # from scipy import ndimage as scp
 # from tqdm import tqdm
-from skimage.metrics import normalized_root_mse as nrm
+# from skimage.metrics import normalized_root_mse as nrm
 # from statsmodels.tsa.stattools import acf
 # import pickle
-from scipy.signal import find_peaks
+# from scipy.signal import find_peaks
 # from sklearn.cluster import KMeans
 # from sklearn.decomposition import PCA
 from scipy.fftpack import fft2, fftshift, ifft2, fft, ifft
@@ -25,9 +25,9 @@ from scipy.fftpack import fft2, fftshift, ifft2, fft, ifft
 # from skimage.feature import SIFT, match_descriptors,plot_matches
 # from skimage.feature import ORB
 # import ants.registration as ants_register
-import ants
+# import ants
 # from scipy.optimize import minimize as minz
-from scipy import optimize
+# from scipy import optimize
 # from itertools import permutations 
 from skimage.filters import threshold_otsu
 from skimage.metrics import normalized_mutual_information as nmi
