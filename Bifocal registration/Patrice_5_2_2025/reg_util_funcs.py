@@ -15,11 +15,12 @@ def mse_fun_tran_flat(shif, x, y , past_shift):
     warped_x_stat = warp(x, AffineTransform(translation=(-shif[0],0)),order=1)
     warped_y_mov = warp(y, AffineTransform(translation=(shif[0],0)),order=1)
 
-    return (1-ncc(warped_x_stat ,warped_y_mov))
+    err = np.squeeze(1-ncc(warped_x_stat ,warped_y_mov))
+    return float(err)
     
 def ants_all_tran_flat(data,UP_flat,DOWN_flat,static_flat,disable_tqdm):
     transforms_all = np.tile(np.eye(3),(data.shape[2],1,1))
-    for i in tqdm(range(data.shape[2]),desc='tr_all flat',disable=disable_tqdm):
+    for i in tqdm(range(data.shape[2]),desc='Flattening surfaces',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
         stat = data[:,UP_flat:DOWN_flat,static_flat][::20].copy()
         temp_img = data[:,UP_flat:DOWN_flat,i][::20].copy()
 
@@ -27,7 +28,7 @@ def ants_all_tran_flat(data,UP_flat,DOWN_flat,static_flat,disable_tqdm):
         # temp_tform_manual = AffineTransform(translation=(0,0))
         past_shift = 0
         for _ in range(10):
-            move = minz(method='powell',fun = mse_fun_tran_flat,x0 =(0), bounds=[(-3,3)],
+            move = minz(method='powell',fun = mse_fun_tran_flat,x0 = np.array([0.0]), bounds=[(-3,3)],
                         args = (stat
                                 ,temp_img
                                 ,past_shift))['x']
@@ -46,18 +47,18 @@ def flatten_data(data,UP_flat,DOWN_flat,top_surf,disable_tqdm):
     for i in range(tf_all_nn.shape[0]):
         tf_all_nn[i] = np.dot(tf_all_nn[i],AffineTransform(translation=(-(nn[0]-nn[i]),0)))
     if top_surf:
-        for i in tqdm(range(data.shape[2]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[2]),desc='Flat warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[:,:DOWN_flat,i]  = warp(data[:,:DOWN_flat,i] ,AffineTransform(matrix=tf_all_nn[i]),order=3)
     else:
-        for i in tqdm(range(data.shape[2]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[2]),desc='Flat warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[:,UP_flat:,i]  = warp(data[:,UP_flat:,i] ,AffineTransform(matrix=tf_all_nn[i]),order=3)
 
     tr_all = ants_all_tran_flat(data,UP_flat,DOWN_flat,static_flat,disable_tqdm)
     if top_surf:
-        for i in tqdm(range(data.shape[2]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[2]),desc='Flat warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[:,:DOWN_flat,i]  = warp(data[:,:DOWN_flat,i] ,AffineTransform(matrix=tr_all[i]),order=3)
     else:
-        for i in tqdm(range(data.shape[2]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[2]),desc='Flat warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[:,UP_flat:,i]  = warp(data[:,UP_flat:,i] ,AffineTransform(matrix=tr_all[i]),order=3)
     return data
 
@@ -68,18 +69,19 @@ def mse_fun_tran_y(shif, x, y , past_shift):
     warped_x_stat = warp(x, AffineTransform(translation=(0,-shif[0])),order=3)
     warped_y_mov = warp(y, AffineTransform(translation=(0,shif[0])),order=3)
 
-    return (1-ncc(warped_x_stat ,warped_y_mov))
+    err = np.squeeze(1-ncc(warped_x_stat ,warped_y_mov))
+    return float(err)
     
 def ants_all_trans_y(data,UP_y,DOWN_y,static_y_motion,disable_tqdm):
     transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
-    for i in tqdm(range(data.shape[0]-1),desc='tr_all y-motion',disable=disable_tqdm):
+    for i in tqdm(range(data.shape[0]-1),desc='Y-motion Correction',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
         stat = data[static_y_motion][UP_y:DOWN_y][:,::20].copy()
         temp_img = data[i][UP_y:DOWN_y][:,::20].copy()
         # MANUAL
         # temp_tform_manual = AffineTransform(translation=(0,0))
         past_shift = 0
         for _ in range(10):
-            move = minz(method='powell',fun = mse_fun_tran_y,x0 =(0), bounds=[(-2,2)],
+            move = minz(method='powell',fun = mse_fun_tran_y,x0 = np.array([0.0]), bounds=[(-2,2)],
                         args = (stat
                                 ,temp_img
                                 ,past_shift))['x']
@@ -97,18 +99,18 @@ def y_motion_correcting(data,UP_y,DOWN_y,top_surf,disable_tqdm):
     for i in range(tf_all_nn.shape[0]):
         tf_all_nn[i] = np.dot(tf_all_nn[i],AffineTransform(translation=(0,-(nn[0]-nn[i]))))
     if top_surf:
-        for i in tqdm(range(data.shape[0]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[0]),desc='y-motion warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[i,:DOWN_y]  = warp(data[i,:DOWN_y],AffineTransform(matrix=tf_all_nn[i]),order=3)
     else:
-        for i in tqdm(range(data.shape[0]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[0]),desc='y-motion warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[i,UP_y:]  = warp(data[i,UP_y:],AffineTransform(matrix=tf_all_nn[i]),order=3)
 
     tr_all_y = ants_all_trans_y(data,UP_y,DOWN_y,static_y_motion,disable_tqdm)
     if top_surf:
-        for i in tqdm(range(data.shape[0]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[0]),desc='y-motion warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[i,:DOWN_y]  = warp(data[i,:DOWN_y],AffineTransform(matrix=tr_all_y[i]),order=3)
     else:
-        for i in tqdm(range(data.shape[0]),desc='warping',disable=disable_tqdm):
+        for i in tqdm(range(data.shape[0]),desc='y-motion warping',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
             data[i,UP_y:]  = warp(data[i,UP_y:],AffineTransform(matrix=tr_all_y[i]),order=3)
     return data
 
@@ -137,20 +139,15 @@ def mse_fun_tran_x(shif, x, y , past_shift):
     warped_x_stat = warp(x, AffineTransform(translation=(-shif[0],0)),order=3)
     warped_y_mov = warp(y, AffineTransform(translation=(shif[0],0)),order=3)
 
-    return (1-ncc(warped_x_stat ,warped_y_mov))
+    err = np.squeeze(1-ncc(warped_x_stat ,warped_y_mov))
+    return float(err)
 
 def get_line_shift(line_1d_stat, line_1d_mov,enface_shape):
-    # grad_feat = np.argmax(np.abs(np.gradient(line_1d_stat)[5:-5]))+5
-    # # print(grad_feat,i)
-    # grad_feat = max(20,grad_feat)
-    # grad_feat = min(grad_feat,enface_shape-20)
-    # st = line_1d_stat[grad_feat-20:grad_feat+20]
-    # mv = line_1d_mov[grad_feat-20:grad_feat+20]
     st = line_1d_stat
     mv = line_1d_mov
     past_shift = 0
     for _ in range(10):
-        move = minz(method='powell',fun = shift_func,x0 = (0),bounds =[(-5,5)],
+        move = minz(method='powell',fun = shift_func,x0 = np.array([0.0]),bounds =[(-4,4)],
                 args = (st
                         ,mv
                         ,past_shift))['x']
@@ -173,50 +170,72 @@ def check_multiple_warps(stat_img, mov_img, *args):
     # print(errors)
     return np.argmax(errors)
 
-def ants_all_trans_x(data,UP_x,DOWN_x,valid_args,enface_extraction_rows,disable_tqdm):
+def ants_all_trans_x(data,UP_x,DOWN_x,valid_args,enface_extraction_rows,disable_tqdm,scan_num):
     transforms_all = np.tile(np.eye(3),(data.shape[0],1,1))
-    for i in tqdm(range(0,data.shape[0]-1,2),desc='tr_all',disable=disable_tqdm):
-        if i not in valid_args:
-            continue
-        if (UP_x is not None) and (DOWN_x is not None):
-            UP_x , DOWN_x = np.squeeze(np.array(UP_x)), np.squeeze(np.array(DOWN_x))
-            # print(UP_x,DOWN_x)
-            if UP_x.size>1 and DOWN_x.size>1:
-                stat = data[i,np.r_[UP_x[0]:DOWN_x[0],UP_x[1]:DOWN_x[1]]].copy()
-                temp_manual = data[i+1,np.r_[UP_x[0]:DOWN_x[0],UP_x[1]:DOWN_x[1]]].copy()
-            else:
-                stat = data[i,UP_x:DOWN_x].copy()
-                temp_manual = data[i+1,UP_x:DOWN_x].copy()
-            # MANUAL
-            temp_tform_manual = AffineTransform(translation=(0,0))
-            past_shift = 0
-            for _ in range(10):
-                move = minz(method='powell',fun = mse_fun_tran_x,x0 =(0), bounds=[(-5,5)],
-                            args = (stat
-                                    ,temp_manual
-                                    ,past_shift))['x']
-
-                past_shift += move[0]
-            cross_section = -(past_shift*2)
-        else:
-            cross_section = 0
-        enface_shape = data[:,0,:].shape[1]
-        enface_wraps = []
-        if len(enface_extraction_rows)>0:
-            for enf_idx in range(len(enface_extraction_rows)):
-                try:
-                    temp_enface_shift = get_line_shift(data[i,enface_extraction_rows[enf_idx]],data[i+1,enface_extraction_rows[enf_idx]],enface_shape)
-                except:
-                    temp_enface_shift = 0
-                enface_wraps.append(temp_enface_shift)
-        all_warps = [cross_section,*enface_wraps]
-        best_warp = check_multiple_warps(data[i], data[i+1], all_warps)
-        temp_tform_manual = AffineTransform(translation=(-(all_warps[best_warp]),0))
-        transforms_all[i+1] = np.dot(transforms_all[i+1],temp_tform_manual)
-        gc.collect()
+    for i in tqdm(range(0,data.shape[0]-1,2),desc='X-motion Correction',disable=disable_tqdm, ascii="░▖▘▝▗▚▞█", leave=False):
+        try:
+            if i not in valid_args:
+                continue
+            try:
+                if (UP_x is not None) and (DOWN_x is not None):
+                    UP_x , DOWN_x = np.squeeze(np.array(UP_x)), np.squeeze(np.array(DOWN_x))
+                    if UP_x.size>1 and DOWN_x.size>1:
+                        stat = data[i,np.r_[UP_x[0]:DOWN_x[0],UP_x[1]:DOWN_x[1]],:]
+                        temp_manual = data[i+1,np.r_[UP_x[0]:DOWN_x[0],UP_x[1]:DOWN_x[1]],:]
+                    else:
+                        stat = data[i,UP_x:DOWN_x,:]
+                        temp_manual = data[i+1,UP_x:DOWN_x,:]
+                    # MANUAL
+                    temp_tform_manual = AffineTransform(translation=(0,0))
+                    past_shift = 0
+                    for _ in range(10):
+                        move = minz(method='powell',fun = mse_fun_tran_x,x0 = np.array([0.0]), bounds=[(-4,4)],
+                                    args = (stat
+                                            ,temp_manual
+                                            ,past_shift))['x']
+                        past_shift += move[0]
+                    cross_section = -(past_shift*2)
+                else:
+                    cross_section = 0
+            except:
+                with open(f'debug{scan_num}.txt', 'a') as f:
+                    f.write(f'Cell corss_section failed here\n')
+                    f.write(f'UP_x: {UP_x}, DOWN_x: {DOWN_x}\n')
+                    f.write(f'NAME: {scan_num}\n')
+                    f.write(f'Ith: {i}\n')
+                    f.write(f'enface_extraction_rows: {enface_extraction_rows}\n')
+                cross_section = 0
+            enface_shape = data[:,0,:].shape[1]
+            enface_wraps = []
+            if len(enface_extraction_rows)>0:
+                for enf_idx in range(len(enface_extraction_rows)):
+                    try:
+                        temp_enface_shift = get_line_shift(data[i,enface_extraction_rows[enf_idx]],data[i+1,enface_extraction_rows[enf_idx]],enface_shape)
+                    except:
+                        with open(f'debug{scan_num}.txt', 'a') as f:
+                            f.write(f'TEMP enface shift failed here\n')
+                            f.write(f'UP_x: {UP_x}, DOWN_x: {DOWN_x}\n')
+                            f.write(f'NAME: {scan_num}\n')
+                            f.write(f'Ith: {i}\n')
+                            f.write(f'enface_extraction_rows: {enface_extraction_rows}\n')
+                        temp_enface_shift = 0
+                    enface_wraps.append(temp_enface_shift)
+            all_warps = [cross_section,*enface_wraps]
+            best_warp = check_multiple_warps(data[i], data[i+1], all_warps)
+            temp_tform_manual = AffineTransform(translation=(-(all_warps[best_warp]),0))
+            transforms_all[i+1] = np.dot(transforms_all[i+1],temp_tform_manual)
+            gc.collect()
+        except Exception as e:
+            with open(f'debug{scan_num}.txt', 'a') as f:
+                f.write(f'EVERYTHIN FAILED HERE\n')
+                f.write(f'UP_x: {UP_x}, DOWN_x: {DOWN_x}\n')
+                f.write(f'NAME: {scan_num}\n')
+                f.write(f'Ith: {i}\n')
+                f.write(f'enface_extraction_rows: {enface_extraction_rows}\n')
+            raise e
     return transforms_all
 
-def load_data(dirname, scan_num):
+def load_h5_data(dirname, scan_num):
     path = f'{dirname}/{scan_num}/'
     # path = 'intervolume_registered/self_inter/scan5/'
     pic_paths = []
@@ -224,7 +243,7 @@ def load_data(dirname, scan_num):
         if i.endswith('.h5'):
             pic_paths.append(i)
     with h5py.File(path+pic_paths[0], 'r') as hf:
-        original_data = hf['volume'][:,100:-100,:]
+        original_data = hf['volume'][:,100:-100,:].astype(np.float32)
     return original_data
 
 def filter_list(result_list):
@@ -237,7 +256,7 @@ def filter_list(result_list):
         filtered_summary.extend(top_two)
     return filtered_summary
 
-def detect_areas(result_list, pad_val):
+def detect_areas(result_list, pad_val, img_shape):
     if len(result_list)==0:
         return None
     result_list = filter_list(result_list)
@@ -248,6 +267,7 @@ def detect_areas(result_list, pad_val):
         return None
     coords = np.squeeze(np.array(coords))
     coords = np.where(coords<0,0,coords)
+    coords = np.where(coords>img_shape,img_shape-1,coords)
     if coords.ndim==1:
         coords = coords.reshape(1,-1)
     if coords.shape[0]>1:
@@ -293,6 +313,7 @@ def detect_areas(result_list, pad_val):
 '''
 
 def crop_data(data,surface_coords,cells_coords):
+    uncroped_data = data.copy()
     merged_coords = []
     if surface_coords is not None:
         surface_coords[:,0],surface_coords[:,1] = surface_coords[:,0]-30, surface_coords[:,1]+30
@@ -303,5 +324,5 @@ def crop_data(data,surface_coords,cells_coords):
         cells_coords = np.where(cells_coords<0,0,cells_coords)
         merged_coords.extend([*cells_coords])
     merged_coords = merge_intervals([*merged_coords])
-    data = data[:,np.r_[tuple(np.r_[start:end] for start, end in merged_coords)],:]
-    return data
+    uncroped_data = uncroped_data[:,np.r_[tuple(np.r_[start:end] for start, end in merged_coords)],:]
+    return uncroped_data
