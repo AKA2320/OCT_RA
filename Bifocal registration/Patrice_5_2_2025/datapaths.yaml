@@ -1,0 +1,9 @@
+local_data_paths:
+  DATA_LOAD_DIR: 'batch1_endo'
+  DATA_SAVE_DIR: 'registered_endo/'
+  MODEL_PATH: '/Users/akapatil/Documents/feature_extraction/yolo_feature_extraction/yolov12s_best.pt'
+
+server_data_paths:
+  DATA_LOAD_DIR: '../Patrice_5_2_2025/batch1_endo'
+  DATA_SAVE_DIR: '../Patrice_5_2_2025/registered_endo/'
+  MODEL_PATH: 'yolov12s_best.pt'
