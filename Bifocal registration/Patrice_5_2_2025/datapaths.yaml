@@ -1,9 +1,29 @@
-local_data_paths:
+local_data_paths_endo:
   DATA_LOAD_DIR: 'batch1_endo'
   DATA_SAVE_DIR: 'registered_endo/'
   MODEL_PATH: '/Users/akapatil/Documents/feature_extraction/yolo_feature_extraction/yolov12s_best.pt'
 
-server_data_paths:
+server_data_paths_endo:
   DATA_LOAD_DIR: '../Patrice_5_2_2025/batch1_endo'
   DATA_SAVE_DIR: '../Patrice_5_2_2025/registered_endo/'
+  MODEL_PATH: 'yolov12s_best.pt'
+
+server_data_paths_epi:
+  DATA_LOAD_DIR: '../Patrice_5_2_2025/batch_epi'
+  DATA_SAVE_DIR: '../Patrice_5_2_2025/registered_epi/'
+  MODEL_PATH: 'yolov12s_best.pt'
+
+server_data_paths_batch_hadiya:
+  DATA_LOAD_DIR: '../Hadiya_4_15_2025_1.50_3mm/batch'
+  DATA_SAVE_DIR: '../Hadiya_4_15_2025_1.50_3mm/registered_batch/'
+  MODEL_PATH: 'yolov12s_best.pt'
+
+server_data_paths_batch1_hadiya:
+  DATA_LOAD_DIR: '../Hadiya_4_15_2025_1.50_3mm/batch1'
+  DATA_SAVE_DIR: '../Hadiya_4_15_2025_1.50_3mm/registered_batch1/'
+  MODEL_PATH: 'yolov12s_best.pt'
+
+server_data_paths_OK1_scan12:
+  DATA_LOAD_DIR: '../OK1_V2_2023_03_03/scan12/'
+  DATA_SAVE_DIR: '../OK1_V2_2023_03_03/registered_scan12/'
   MODEL_PATH: 'yolov12s_best.pt'

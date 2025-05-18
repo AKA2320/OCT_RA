@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 with open('datapaths.yaml', 'r') as f:
-    config = yaml.safe_load(f)['server_data_paths_endo']
+    config = yaml.safe_load(f)[f'server_data_paths_epi']
 
 MODEL = YOLO(config['MODEL_PATH'])
 SURFACE_Y_PAD = 20
@@ -29,6 +29,8 @@ SURFACE_X_PAD = 10
 CELLS_X_PAD = 5
 DATA_LOAD_DIR = config['DATA_LOAD_DIR']
 DATA_SAVE_DIR = config['DATA_SAVE_DIR']
+EXPECTED_SURFACES = 1
+EXPECTED_CELLS = 2
 
 # MODEL = YOLO(config['local_data_paths']['MODEL_PATH'])
 # SURFACE_Y_PAD = 20
@@ -45,27 +47,27 @@ def main(args):
     if not os.path.exists(os.path.join(dirname, scan_num)):
         raise FileNotFoundError(f"Scan {scan_num} not found in {dirname}")
     original_data = load_h5_data(dirname,scan_num)
+    # original_data = load_data_dcm(dirname)
     # MODEL PART
     # pbar.set_description(desc = f'Loading Model for {scan_num}')
     static_flat = np.argmax(np.sum(original_data[:,:,:],axis=(0,1)))
     test_detect_img = preprocess_img(original_data[:,:,static_flat])
-    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = save_detections, project = 'Detected Areas',name = scan_num, verbose=False,classes=[0,1], device='cpu')
+    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = save_detections, project = 'Detected Areas',name = scan_num, verbose=False,classes=[0,1], device='cpu',agnostic_nms = True)
     surface_crop_coords = [i for i in res_surface[0].summary() if i['name']=='surface']
     cells_crop_coords = [i for i in res_surface[0].summary() if i['name']=='cells']
-    surface_crop_coords = detect_areas(surface_crop_coords, pad_val = 20, img_shape = test_detect_img.shape[0])
-    cells_crop_coords = detect_areas(cells_crop_coords, pad_val = 20, img_shape = test_detect_img.shape[0])
+    surface_crop_coords = detect_areas(surface_crop_coords, pad_val = 20, img_shape = test_detect_img.shape[0], expected_num = EXPECTED_SURFACES)
+    cells_crop_coords = detect_areas(cells_crop_coords, pad_val = 20, img_shape = test_detect_img.shape[0], expected_num = EXPECTED_CELLS)
     cropped_original_data = crop_data(original_data,surface_crop_coords,cells_crop_coords,original_data.shape[1])
     del original_data
 
     static_flat = np.argmax(np.sum(cropped_original_data[:,:,:],axis=(0,1)))
     test_detect_img = preprocess_img(cropped_original_data[:,:,static_flat])
-    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes=0, device='cpu')
+    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes=0, device='cpu',agnostic_nms = True)
     # result_list = res[0].summary()
-    surface_coords = detect_areas(res_surface[0].summary(),pad_val = SURFACE_Y_PAD, img_shape = test_detect_img.shape[0])
+    surface_coords = detect_areas(res_surface[0].summary(),pad_val = SURFACE_Y_PAD, img_shape = test_detect_img.shape[0], expected_num = EXPECTED_SURFACES)
     if surface_coords is None:
-        with open(f'debug{scan_num}.txt', 'a') as f:
+        with open(f'debugs/debug{scan_num}.txt', 'a') as f:
             f.write(f'NO SURFACE DETECTED: {scan_num}\n')
-        # print(f'NO SURFACE DETECTED: {scan_num}')
         return None
     
     # FLATTENING PART
@@ -77,7 +79,7 @@ def main(args):
         UP_flat,DOWN_flat = surface_coords[i,0], surface_coords[i,1]
         UP_flat = max(UP_flat,0)
         DOWN_flat = min(DOWN_flat, cropped_original_data.shape[2])
-        cropped_original_data = flatten_data(cropped_original_data,UP_flat,DOWN_flat,top_surf,disable_tqdm)
+        cropped_original_data = flatten_data(cropped_original_data,UP_flat,DOWN_flat,top_surf,disable_tqdm,scan_num)
         top_surf = False
 
     # Y-MOTION PART
@@ -87,26 +89,20 @@ def main(args):
         UP_y,DOWN_y = surface_coords[i,0], surface_coords[i,1]
         UP_y = max(UP_y,0)
         DOWN_y = min(DOWN_y, cropped_original_data.shape[2])
-        cropped_original_data = y_motion_correcting(cropped_original_data,UP_y,DOWN_y,top_surf,disable_tqdm)
+        cropped_original_data = y_motion_correcting(cropped_original_data,UP_y,DOWN_y,top_surf,disable_tqdm,scan_num)
         top_surf = False
 
     # X-MOTION PART
     # pbar.set_description(desc = f'Correcting {scan_num} X-Motion.....')
     test_detect_img = preprocess_img(cropped_original_data[:,:,static_flat])
-    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes = 0, device='cpu')
-    res_cells = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes = 1, device='cpu')
+    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes = 0, device='cpu',agnostic_nms = True)
+    res_cells = MODEL.predict(test_detect_img,iou = 0.5, save = False, verbose=False,classes = 1, device='cpu',agnostic_nms = True)
     # result_list = res[0].summary()
-    surface_coords = detect_areas(res_surface[0].summary(),pad_val = SURFACE_X_PAD, img_shape = test_detect_img.shape[0])
-    cells_coords = detect_areas(res_cells[0].summary(),pad_val = CELLS_X_PAD, img_shape = test_detect_img.shape[0])
-
+    surface_coords = detect_areas(res_surface[0].summary(),pad_val = SURFACE_X_PAD, img_shape = test_detect_img.shape[0], expected_num = EXPECTED_SURFACES)
+    cells_coords = detect_areas(res_cells[0].summary(),pad_val = CELLS_X_PAD, img_shape = test_detect_img.shape[0], expected_num = EXPECTED_CELLS)
     if (cells_coords is None) and (surface_coords is None):
-        with open(f'debug{scan_num}.txt', 'a') as f:
+        with open(f'debugs/debug{scan_num}.txt', 'a') as f:
             f.write(f'NO SURFACE OR CELLS DETECTED: {scan_num}\n')
-            # f.write(f'UP_x: {UP_x}, DOWN_x: {DOWN_x}\n')
-            # f.write(f'NAME: {scan_num}\n')
-            # f.write(f'Ith: {i}\n')
-            # f.write(f'enface_extraction_rows: {enface_extraction_rows}\n')
-        # print()
         return
     
     enface_extraction_rows = []
@@ -192,10 +188,10 @@ if __name__ == "__main__":
     start = time.time()
     with performance_report(filename="dask-report.html"):
         results = compute(*tasks)
-        progress(results) 
-        results = client.gather(results)
+        # progress(results) 
+        # results = client.gather(results)
     # results = compute(*tasks)
     print(f"Done in {time.time() - start:.2f} seconds")
-    client.close()
-    cluster.close()
+    # client.close()
+    # cluster.close()
 
