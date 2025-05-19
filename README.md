@@ -24,7 +24,7 @@ This analysis focuses on tracking **cell movement post-registration** in pig eye
   <tr>
     <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/GIFs/before_cell_dynamics.gif" alt="Before Eye Drop" width="300"/></td>
     <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/GIFs/after_cell_dynamics.gif" alt="After Eye Drop" width="300"/></td>
-    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/GIFs/after_2min_cell_dynamics.gif.gif" alt="2 mins After Eye Drop" width="300"/></td>
+    <td><img src="https://github.com/AKA2320/OCT_RA/blob/main/GIFs/after_2min_cell_dynamics.gif" alt="2 mins After Eye Drop" width="300"/></td>
   </tr>
 </table>
 
