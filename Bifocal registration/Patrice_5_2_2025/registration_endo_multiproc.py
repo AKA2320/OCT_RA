@@ -49,7 +49,7 @@ def main(args):
     # pbar.set_description(desc = f'Loading Model for {scan_num}')
     static_flat = np.argmax(np.sum(original_data[:,:,:],axis=(0,1)))
     test_detect_img = preprocess_img(original_data[:,:,static_flat])
-    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = save_detections, project = 'Detected Areas',name = scan_num, verbose=False,classes=[0,1], device='cpu')
+    res_surface = MODEL.predict(test_detect_img,iou = 0.5, save = save_detections, project = 'Detected Areas',name = scan_num, verbose=False,classes=[0,1], device='cpu', augment = True)
     surface_crop_coords = [i for i in res_surface[0].summary() if i['name']=='surface']
     cells_crop_coords = [i for i in res_surface[0].summary() if i['name']=='cells']
     surface_crop_coords = detect_areas(surface_crop_coords, pad_val = 20, img_shape = test_detect_img.shape[0])

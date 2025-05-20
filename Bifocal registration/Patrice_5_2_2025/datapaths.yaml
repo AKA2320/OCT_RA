@@ -27,3 +27,13 @@ server_data_paths_OK1_scan12:
   DATA_LOAD_DIR: '../OK1_V2_2023_03_03/scan12/'
   DATA_SAVE_DIR: '../OK1_V2_2023_03_03/registered_scan12/'
   MODEL_PATH: 'yolov12s_best.pt'
+
+server_enface_paths_endo:
+  DATA_LOAD_DIR: '../Patrice_5_2_2025/registered_endo/'
+  DATA_SAVE_DIR: '../Patrice_5_2_2025/'
+  MODEL_PATH: 'yolov12s_best.pt'
+
+server_enface_paths_epi:
+  DATA_LOAD_DIR: '../Patrice_5_2_2025/registered_epi/'
+  DATA_SAVE_DIR: '../Patrice_5_2_2025/'
+  MODEL_PATH: 'yolov12s_best.pt'
