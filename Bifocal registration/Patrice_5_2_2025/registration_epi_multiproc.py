@@ -72,7 +72,6 @@ def main(args):
     
     # FLATTENING PART
     # pbar.set_description(desc = f'Flattening {scan_num}.....')
-    # print('SURFACE COORDS:',surface_coords)
     static_flat = np.argmax(np.sum(cropped_original_data[:,surface_coords[0,0]:surface_coords[0,1],:],axis=(0,1)))
     top_surf = True
     for i in range(surface_coords.shape[0]):
